@@ -14,7 +14,7 @@ class Loop:  # todo incorporate ability to forfeit
         self.p2 = p2
         self.random_board = random_board
         self.delay = delay
-        self.red_line = Fore.RED + "-"*50 + Style.RESET_ALL
+        self.red_line = Fore.RED + "-" * 50 + Style.RESET_ALL
         self.game_loop()
 
     def game_loop(self):
@@ -49,7 +49,7 @@ class Loop:  # todo incorporate ability to forfeit
 
     def spacer(self):
         print(self.red_line)
-        print("\n"*80)
+        print("\n" * 80)
 
     def line(self):
         sleep(self.delay)

@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 import pathlib
 import os
-import cProfile  # noqa
+import cProfile
 
 from battleships.util.selector import Selector
 from battleships.util.util import CalcUtil, JSONFlatEncoder, NoIndent
@@ -21,7 +21,7 @@ class Benchmark(CalcUtil, Selector):
         self.ships = ships
         self.processes = proc
         self.eps = episodes // self.processes
-        self.write_to_disk = True if episodes >= 1000000 else False
+        self.write_to_disk = bool(episodes >= 1000000)
         # result lists
         self.path = os.path.abspath(pathlib.Path(__file__).parent.resolve())
         self.shots_p1 = []
@@ -89,12 +89,12 @@ class Benchmark(CalcUtil, Selector):
             file.write(json.dumps(data, indent=4, cls=JSONFlatEncoder))  # write to file in this directory
 
     def show_info(self):
-        game_time = (self.end-self.start) / (self.eps*self.processes)  # calculate simulation time per game
+        game_time = (self.end - self.start) / (self.eps * self.processes)  # calculate simulation time per game
         hit_p1, miss_p1 = self.extract_info(self.shots_p1)  # average hits and misses
         hit_p2, miss_p2 = self.extract_info(self.shots_p2)
         win_p1, win_p2, _ = self.counter(self.wins)  # count wins
         ff_p1, ff_p2 = sum(self.ff_p1), sum(self.ff_p2)
-        eps = win_p1+win_p2  # episodes played
+        eps = win_p1 + win_p2  # episodes played
         completed = eps // self.processes  # episodes played per process
         print(f'''
         The algorithm was run for {eps} episodes.
