@@ -7,7 +7,7 @@ init()
 
 class Loop:  # todo incorporate ability to forfeit
     """
-    defines game loop, takes two classes. called from game.py
+    Defines game loop, takes two classes. Called from game.py.
     """
     def __init__(self, p1, p2, random_board: bool, delay: float):
         self.p1 = p1  # Player 1 and 2

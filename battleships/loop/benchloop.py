@@ -2,7 +2,7 @@
 
 class BenchLoop:
     """
-    defines game loop, takes two classes. called from game.py
+    Defines game loop, takes two classes. Called from benchmark.py.
     """
     def __init__(self, p1, p2, episodes):
         self.p1 = p1  # Player 1 and 2

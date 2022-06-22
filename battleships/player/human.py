@@ -14,8 +14,8 @@ class HumanIO(GameUtil):  # todo add forfeit method, user should be able to ff a
 
     def placement(self):
         """
-        ship placement function for players
-        prompts the user to place all ships specified in self.ships
+        Ship placement function for players.
+        Prompts the user to place all ships specified in self.ships
         """
         print(f"{self.name}, it's time to place you ships. You may choose between orientations right or down.")
         for ship in self.ships:  # for each ship length specified in self.ships
@@ -47,8 +47,7 @@ class HumanIO(GameUtil):  # todo add forfeit method, user should be able to ff a
         """
         Parameters:
             inst: Class, middle-layer instance of BaseGame, requires the game attribute
-        user is prompted to shoot on the field of inst
-        inst will be used to carry the shot out
+        User is prompted to shoot on the field of inst.
         """
         print(f"{self.name}, it is your turn. This is your board:")
         inst.render()  # render instances board -> this does NOT call inst.game.render, but the render function

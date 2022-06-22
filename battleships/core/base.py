@@ -11,8 +11,8 @@ class BaseGame:
             raise AttributeError("BaseGame should not be inherited and only passed as an instance.")
         """
         Parameters:
-            size: tuple (x, y) or int. constructs a field with size x, y or x, x if int is given
-            use_spacer: bool. set True if ships may not touch during placing
+            size: tuple (x, y) or int. Constructs a field with size x, y or x, x if int is given
+            use_spacer: bool. Set True if ships may not touch during placing
         """
         if isinstance(size, tuple):
             if len(size) == 1:
@@ -139,9 +139,9 @@ class BaseGame:
 
     def __ships_sunken(self):
         """
-        checks if all ships in self.ships are sunken
-        sets self.__game_over True if all ships have been sunken
-        protected, flags should not be set from the outside
+        Checks if all ships in self.ships are sunken.
+        Sets self.__game_over True if all ships have been sunken.
+        Protected, flags should not be set from the outside.
         """
         self.__ship_sunk = False
         self.__length_ship_sunk = 0
@@ -164,12 +164,11 @@ class BaseGame:
 
     def calculate_spot_combinations(self, size: int, spot: int) -> list[list[int]]:
         """
-        parameters:
+        Parameters:
             size: int
             spot: int
-        calculates all combinations for ship of length (size) through a single field (spot) on the board and
-        returns them
-        returns and empty list if board is too small
+        Calculates all combinations for ship of length (size) through a single field (spot) on the board.
+        Returns and empty list if board is too small to account for a ship of the given size.
         """
         combinations = []
         line = None  # get the line the spot is on
@@ -196,8 +195,8 @@ class BaseGame:
         """
         Parameters:
             size: int
-        calculates all possible combinations for ship of length (size) and returns them
-        returns an empty list if board is too small
+        Calculates all possible combinations for ship of length (size).
+        Returns an empty list if board is too small to account for a ship of the given size.
         """
 
         if size in self.__calculated:
@@ -244,8 +243,8 @@ class BaseGame:
         """
         Parameters:
             ship: list
-        sets ship on self.__board if no obstructions are found
-        raises InvalidPositionError if ship cannot be placed
+        Sets ship on self.__board if no obstructions are found.
+        Raises InvalidPositionError if ship cannot be placed.
         """
         ship.sort()
         if ship not in self.calculate_combinations(len(ship)):  # test if ship is a valid combination
@@ -277,8 +276,7 @@ class BaseGame:
         """
         Parameters:
             ships: list[list]
-        calls set_ship() for each ship in ships
-        i.e. [[1, 2], [27, 28, 29], [98, 99]]
+        Calls set_ship() for each ship in ships.
         """
         for ship in ships:
             self.set_ship(ship)
@@ -288,7 +286,7 @@ class BaseGame:
         Parameters:
              ships: list of ints, each element is the length of one ship
              [3, 2, 1] -> 1 of len 3, 1 of len 2, ...
-        randomly places len(ships) on the board
+        Randomly places len(ships) on the board.
         """
         for ship in ships:
             combinations = self.calculate_combinations(ship)  # get possible combinations
@@ -307,11 +305,10 @@ class BaseGame:
         """
         Parameters:
             position: int
-        default shoot function
-        modifies self.__shots at given position
-        1 if ship is present at position,
-        2 if not
-        raises ShotError if position was already shot at
+        Default shoot function.
+        Modifies self.__shots at given position.
+        1 if ship is present at position, 2 if not.
+        Raises ShotError if position was already shot at.
         """
         if not self.__shots[position]:
             if self.__board[position]:
@@ -328,11 +325,11 @@ class BaseGame:
         """
         Parameters:
             args: bool or list
-        debug render function
-        draws self.__board if no argument is specified,
-        self.__shots if len(args) is 1,
-        args[1] if 2 args are given
-        args[1] has to be of length self.__size
+        Debug render function.
+        Draws self.__board if no argument is specified,
+        Self.__shots if len(args) is 1,
+        Args[1] if 2 args are given.
+        Args[1] has to be of length self.__size
         """
         btp = self.__board if len(args) == 1 else self.__shots if len(args) == 0 else args[1]
         if len(args) > 1:
@@ -353,8 +350,8 @@ class BaseGame:
 
     def forfeit(self):
         """
-        immediately forfeit the game
-        next self.ships_sunken call will return True
+        Immediately forfeits the game.
+        Next self.ships_sunken call will return True.
         """
         self.__game_forfeit = True
         self.__last_shot = True
@@ -364,7 +361,7 @@ class BaseGame:
 
     def reset(self):
         """
-        resets all by gameplay affected values to default
+        Resets all by gameplay affected values to default.
         """
         self.__board = [0] * self.__size
         self.__shots = [0] * self.__size

@@ -9,7 +9,7 @@ import re
 
 class GameUtil:
     """
-    class for utility functions shared between middle layer classes
+    Class for utility functions shared between middle layer classes.
     """
     def __init__(self):
         if type(self) == GameUtil:
@@ -29,11 +29,10 @@ class GameUtil:
         """
         Parameters:
             win: int, default 0
-        alters self.game.board, and uses game.render to draw it
-        modifications are done on copies of the board, the actual board is never touched
-        if win is True, all ships will be revealed
+        Alters self.game.board and uses game.render to draw it.
+        If win is True, all ships will be revealed.
         """
-        # modify the board and hijack the BaseGame render method
+        # modify the board and call the BaseGame render method
         if not win:
             board = self.game.shots
             for i, element in enumerate(board):
@@ -64,8 +63,8 @@ class GameUtil:
         """
         Parameters:
             pos: str
-        converts a string, i.e. "A2" to a number that can be used for indexing
-        the supplied string should be passed through check_pos first to ensure a valid number is produced
+        Converts a string, i.e. "A2" to a number that can be used for indexing.
+        The supplied string should be passed through check_pos first to ensure a valid number is produced.
         """
         return self.game.letters.index(pos[0]) + (int(pos[1:]) - 1) * self.game.length
         # math at its finest
@@ -78,8 +77,8 @@ class GameUtil:
         """
         Parameters:
             pos: int
-        converts a position in numerical format back to something like "A2" to be user readable
-        the number should be in range self.game.size
+        Converts a position in numerical format back to the "letter:number" format to be user readable.
+        The number should be in range self.game.size.
         """
         col = pos % self.game.length
         return self.game.letters[col] + str(((pos - col + 1) // self.game.length + 1))
@@ -93,8 +92,8 @@ class GameUtil:
         """
         Parameters:
             pos: str
-        checks the validity of the string under game parameters
-        supplied strings must be uppercase and come in the format "<letter><number(s)>"
+        Checks the validity of the string under game parameters.
+        Supplied strings must be uppercase and come in the format "letter:number(s)"
         """
         if 1 < len(pos) <= 1 + len(str(self.game.height)):  # checks the length, must be over 1 and below or equal
             # the max length, which is 1+height of playing field, i.e 3 for "A10"
@@ -113,15 +112,14 @@ class GameUtil:
 
     def alive_update(self):
         """
-        function to buffer the ship list
-        must be called before the game starts and should only be called once
+        Function to buffer the ship list.
+        Must be called before the game starts and should only be called once.
         """
-        self.alive.extend(self.game.alive)
-        # buffer the ship list
+        self.alive.extend(self.game.alive)  # buffer the ship list
 
     def check_sunken(self):
         """
-        checks if a new ship has been sunken and prints a message
+        Checks if a new ship has been sunken and prints a message.
         """
         old = self.alive.copy()  # get the old ships
         new = self.game.alive  # and the updated ones
@@ -133,22 +131,20 @@ class GameUtil:
 
     def win(self):  # todo check if game was forfeit, then display that
         """
-        shows the board at the end of the game
+        Shows the board at the end of the game.
         """
         print(f"{self.name}, this was your board:")
         self.render(1)  # render with win=1, ships will be revealed
 
     def reset(self):
         """
-        resets parameters of class
-        empty if no parameters are affected by gameplay
+        Resets parameters of class.
         """
         pass
 
     def initialize(self, inst):
         """
-        initializes variables of a class
-        empty of nothing has to be initialized
+        Initializes variables of a class.
         """
         pass
 
@@ -163,7 +159,8 @@ class CalcUtil:
         cnt = Counter(shots)  # counts occurrences of elements
 
         def get(x):
-            return cnt.get(x) if cnt.get(x) is not None else 0  # failsafe
+            temp = cnt.get(x)
+            return temp if temp is not None else 0  # failsafe
 
         return get(0), get(1), get(2)  # not shot, hits, misses
 
