@@ -17,11 +17,11 @@ class Dense(GameUtil):
         self.game = inst
         self.ships = ships
         self.remaining_ships = self.ships.copy()
-        self.size = self.game.get_size()
+        self.size = self.game.size
         self.path = os.path.abspath(pathlib.Path(__file__).parent.resolve())  # get directory of dense.py
         # monitoring function
         if monitor:
-            self.length = self.game.get_length()
+            self.length = self.game.length
             warnings.warn(
                 "monitor potentially creates lots of small files in .\\data\\, especially when used with benchmark.py. "
                 "Use at your own discretion", RuntimeWarning)
@@ -61,7 +61,7 @@ class Dense(GameUtil):
         inst.render()
         print(f"{self.name} chooses {self.convert_back(pos)}")
         inst.game.shoot(pos)
-        if inst.game.get_last_shot():  # if flag last_shot is true something was hit
+        if inst.game.last_shot:  # if flag last_shot is true something was hit
             print("It's a hit!")
         else:
             print("It's a miss!")  # else it's a miss
@@ -74,7 +74,7 @@ class Dense(GameUtil):
             self.after_shot(inst, pos)
         except Exception as e:
             with open(self.path + f"\\error\\error_{self.id}.txt", "a") as file:
-                file.write(str(inst.game.get_ships()) + f" {self.cnt} " + str(e) + "\n")
+                file.write(str(inst.game.ships) + f" {self.cnt} " + str(e) + "\n")
             self.game.forfeit()
 
     def shoot_monitor(self, inst):
@@ -93,12 +93,12 @@ class Dense(GameUtil):
         self.last_pos = pos  # save last_pos
         self.shot.append(pos)  # mark pos as shot
 
-        if inst.game.get_last_shot():  # if last shot was a hit append to tracked hits
+        if inst.game.last_shot:  # if last shot was a hit append to tracked hits
             self.tracked_hits.append(pos)
         self.tracked_hits.sort()  # sort, just for good measure
 
-        if inst.game.get_ship_sunk():  # if a ship was sunken, get length and try to remove it from the tracked shots
-            length = inst.game.get_length_ship_sunk()
+        if inst.game.ship_sunk:  # if a ship was sunken, get length and try to remove it from the tracked shots
+            length = inst.game.length_ship_sunk
             self.remove_from_target(inst, length)
 
         if self.remove_queue:  # if a remove queue is present try to clear it
@@ -156,7 +156,7 @@ class Dense(GameUtil):
         self.find_difference(inst)
 
     def hunter_score(self, inst):  # see create_score_map
-        shots = inst.game.get_shots()
+        shots = inst.game.shots
         for field in self.find_difference(inst):  # this time only for new fields
             for ship in self.remaining_ships:
                 for combination in inst.game.calculate_spot_combinations(ship, field):
@@ -166,8 +166,8 @@ class Dense(GameUtil):
         return self.distribution.index(max(self.distribution)), self.distribution
 
     def create_score_map(self, inst):
-        score_map = [0]*self.size  # make a list the size of the game board, fill it with zeros
-        shots = inst.game.get_shots()  # get all the shots
+        score_map = [0] * self.size  # make a list the size of the game board, fill it with zeros
+        shots = inst.game.shots  # get all the shots
         for ship in self.remaining_ships:  # loop through all remaining ships
             all_combinations = inst.game.calculate_combinations(ship)  # get all the combinations
             for combination in all_combinations:  # loop through them
@@ -177,15 +177,15 @@ class Dense(GameUtil):
         return score_map
 
     def find_difference(self, inst):
-        shots = inst.game.get_shots()
+        shots = inst.game.shots
         updated = [i for i, x in enumerate(shots) if x]  # every shot field
         result = [x for x in updated if x not in self.last_updated]  # every shot field that hasn't been checked yet
         self.last_updated = updated
         return result
 
     def target_score(self, inst):
-        score_map = [0]*self.size  # make a list the size of the game board, fill it with zeros
-        shots = inst.game.get_shots()  # get all the shots
+        score_map = [0] * self.size  # make a list the size of the game board, fill it with zeros
+        shots = inst.game.shots  # get all the shots
         valid = [x for x in self.shot if shots[x] != 1]
         for ship in self.remaining_ships:  # loop through all remaining ships
             all_combinations = inst.game.calculate_combinations(ship)  # get all the combinations
@@ -223,13 +223,13 @@ class Dense(GameUtil):
         plt.title("Score Map")  # give it a title
         plt.axis("off")  # set the axis to off
         # and then it's just the same with different positions
-        shots = np.reshape(inst.game.get_shots(), (-1, self.length))[::-1]
+        shots = np.reshape(inst.game.shots, (-1, self.length))[::-1]
         plt.subplot(222)  # top right
         plt.pcolormesh(shots, edgecolors="k", linewidth=.3, cmap="gray_r", vmin=0, vmax=2)
         plt.title("Shots")
         plt.axis("off")
 
-        tracked_hits = [0]*self.size
+        tracked_hits = [0] * self.size
         for i in self.tracked_hits:
             tracked_hits[i] = 1
         tracked = np.reshape(tracked_hits, (-1, self.length))[::-1]
@@ -238,7 +238,7 @@ class Dense(GameUtil):
         plt.title("Tracked Hits")
         plt.axis("off")
 
-        board = np.reshape(inst.game.get_board(), (-1, self.length))[::-1]
+        board = np.reshape(inst.game.board, (-1, self.length))[::-1]
         plt.subplot(224)  # bottom right
         plt.pcolormesh(board, edgecolors="k", linewidth=.3, cmap="gray_r", vmin=0, vmax=2)
         plt.title("Board")

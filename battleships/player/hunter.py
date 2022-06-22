@@ -9,14 +9,14 @@ class Hunter(GameUtil):
     def __init__(self, ships: list, inst: BaseGame):
         super().__init__()
         self.game = inst
-        self.shots = list(range(self.game.get_size()))
+        self.shots = list(range(self.game.size))
         self.lines = self.game.get_lines()
         self.parity = self.get_parity()
         self.parity_c = self.parity.copy()
         self.ships = ships
         self.name = "Hunter"
         self.get_shot = self.strategy
-        self.directions = [-1, 1, -self.game.get_length(), self.game.get_length()]
+        self.directions = [-1, 1, -self.game.length, self.game.length]
 
         self.to_shoot = []
         self.lp = None
@@ -46,7 +46,7 @@ class Hunter(GameUtil):
         pos = self.get_shot(inst)
         print(f"{self.name} chooses {self.convert_back(pos)}.")
         inst.game.shoot(pos)
-        if inst.game.get_last_shot():  # if flag last_shot is true something was hit
+        if inst.game.last_shot:  # if flag last_shot is true something was hit
             print("It's a hit!")
         else:
             print("It's a miss!")  # else its a miss
@@ -56,20 +56,20 @@ class Hunter(GameUtil):
         inst.game.shoot(pos)
 
     def strategy(self, inst):
-        if inst.game.get_last_shot():
+        if inst.game.last_shot:
             line = self.lines
             for x in line:
                 if self.lp in x:
                     line = x
                     break
-            dirs = [self.lp+x for x in self.directions[:2] if self.lp+x in line and self.lp+x in self.shots
-                    and self.lp+x not in self.to_shoot]
-            dirs.extend([self.lp+x for x in self.directions[2:] if self.lp+x in self.shots
-                         and self.lp+x not in self.to_shoot])
+            dirs = [self.lp + x for x in self.directions[:2] if self.lp + x in line and self.lp + x in self.shots
+                    and self.lp + x not in self.to_shoot]
+            dirs.extend([self.lp + x for x in self.directions[2:] if self.lp + x in self.shots
+                         and self.lp + x not in self.to_shoot])
             self.to_shoot.extend(dirs)
 
         if not self.to_shoot:
-            self.lp = self.parity.pop(randint(0, len(self.parity)-1))
+            self.lp = self.parity.pop(randint(0, len(self.parity) - 1))
         else:
             self.lp = self.to_shoot.pop(0)
         self.rem(self.lp)
@@ -89,7 +89,7 @@ class Hunter(GameUtil):
         return choice(self.parity)
 
     def reset(self):
-        self.shots = list(range(self.game.get_size()))
+        self.shots = list(range(self.game.size))
         self.parity = self.parity_c.copy()
         self.to_shoot = []
         self.lp = None

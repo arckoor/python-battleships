@@ -32,7 +32,7 @@ class HumanIO(GameUtil):  # todo add forfeit method, user should be able to ff a
                         print("This is not a valid orientation. Please try again.")
                     else:
                         if orient in ("down", "d"):  # calculate the ship with orientation and pos given
-                            n_ship = [pos+x*self.game.get_length() for x in range(ship)]
+                            n_ship = [pos + x * self.game.length for x in range(ship)]
                         else:
                             n_ship = [pos + x for x in range(ship)]
                         try:
@@ -60,9 +60,9 @@ class HumanIO(GameUtil):  # todo add forfeit method, user should be able to ff a
                 print("This is not a valid position. Please try again.")
             else:
                 pos = self.convert(pos)  # convert to number for indexing
-                if not inst.game.get_shots()[pos]:  # check if pos was already shot at
+                if not inst.game.shots[pos]:  # check if pos was already shot at
                     inst.game.shoot(pos)  # make the shot
-                    if inst.game.get_last_shot():  # if flag last_shot is true something was hit
+                    if inst.game.last_shot:  # if flag last_shot is true something was hit
                         print("It's a hit!")
                     else:
                         print("It's a miss!")  # else its a miss

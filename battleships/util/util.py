@@ -35,7 +35,7 @@ class GameUtil:
         """
         # modify the board and hijack the BaseGame render method
         if not win:
-            board = self.game.get_shots()
+            board = self.game.shots
             for i, element in enumerate(board):
                 if not element:
                     board[i] = self.placeholder
@@ -45,9 +45,9 @@ class GameUtil:
                     board[i] = self.miss
         else:
             colors = [Fore.RED, Fore.GREEN, Fore.MAGENTA, Fore.CYAN, Fore.BLUE, Fore.YELLOW, Fore.BLACK]
-            board = [self.placeholder] * len(self.game.get_board())
+            board = [self.placeholder] * len(self.game.board)
             # everything else is going to be placeholder anyway, so just start with only placeholders
-            ships = self.game.get_ships()
+            ships = self.game.ships
             for i, ship in enumerate(ships):
                 for spot in ship:
                     board[spot] = colors[i % len(colors)] + str(i + 1) + Style.RESET_ALL
@@ -67,9 +67,9 @@ class GameUtil:
         converts a string, i.e. "A2" to a number that can be used for indexing
         the supplied string should be passed through check_pos first to ensure a valid number is produced
         """
-        return self.game.get_letters().index(pos[0]) + (int(pos[1:]) - 1) * self.game.get_length()
+        return self.game.letters.index(pos[0]) + (int(pos[1:]) - 1) * self.game.length
         # math at its finest
-        # first get the letter and its indexed postion i.e. A -> 0, B -> 1, ...
+        # first get the letter and its indexed position i.e. A -> 0, B -> 1, ...
         # then get the line -> first extract the actual line, decrease by one and multiply by the line offset,
         # which is the length of 1 line
         # then add the two together and that's it
@@ -81,8 +81,8 @@ class GameUtil:
         converts a position in numerical format back to something like "A2" to be user readable
         the number should be in range self.game.size
         """
-        col = pos % self.game.get_length()
-        return self.game.get_letters()[col] + str(((pos - col + 1) // self.game.get_length() + 1))
+        col = pos % self.game.length
+        return self.game.letters[col] + str(((pos - col + 1) // self.game.length + 1))
         # convert in reverse
         # calculate column by % with length
         # then get letters and use col to index
@@ -96,15 +96,15 @@ class GameUtil:
         checks the validity of the string under game parameters
         supplied strings must be uppercase and come in the format "<letter><number(s)>"
         """
-        if 1 < len(pos) <= 1 + len(str(self.game.get_height())):  # checks the length, must be over 1 and below or equal
+        if 1 < len(pos) <= 1 + len(str(self.game.height)):  # checks the length, must be over 1 and below or equal
             # the max length, which is 1+height of playing field, i.e 3 for "A10"
-            if pos[0] in self.game.get_letters():  # letter has to be part of letter range in self.game
+            if pos[0] in self.game.letters:  # letter has to be part of letter range in self.game
                 nums = pos[1:]  # all the things after the first char
                 for char in nums:
                     if char not in [str(x) for x in range(0, 10)]:  # all have to be numbers
                         return False  # if not a number exit early
                 num = int(nums)  # its all numbers, convert to real number
-                if 0 < num <= self.game.get_height():  # is it smaller then the max game height?
+                if 0 < num <= self.game.height:  # is it smaller then the max game height?
                     # A10 and A99 have the sma length, but one a 10x10 board only A10 is valid
                     return True
                 # works with <letter>0<number(s)> as well
@@ -116,7 +116,7 @@ class GameUtil:
         function to buffer the ship list
         must be called before the game starts and should only be called once
         """
-        self.alive.extend(self.game.get_alive())
+        self.alive.extend(self.game.alive)
         # buffer the ship list
 
     def check_sunken(self):
@@ -124,11 +124,11 @@ class GameUtil:
         checks if a new ship has been sunken and prints a message
         """
         old = self.alive.copy()  # get the old ships
-        new = self.game.get_alive()  # and the updated ones
+        new = self.game.alive  # and the updated ones
         for i, (n, o) in enumerate(zip(new, old)):  # i for indexing, (n, o) for comparing the lists
             if n != o:  # if they don't match something changed
                 self.alive[i] = n
-                print(f"Ship {i + 1} of length {self.game.get_length_ship_sunk()} has been sunken!")
+                print(f"Ship {i + 1} of length {self.game.length_ship_sunk} has been sunken!")
                 # give the user a message about it
 
     def win(self):  # todo check if game was forfeit, then display that
@@ -213,7 +213,6 @@ class JSONFlatEncoder(json.JSONEncoder):  # https://stackoverflow.com/a/42721412
                 json_repr = json.dumps(no_indent.value, **self._kwargs)
                 # Replace the matched id string with json formatted representation
                 # of the corresponding Python object.
-                encoded = encoded.replace(
-                            '"{}"'.format(format_spec.format(id_)), json_repr)
+                encoded = encoded.replace(f"{format_spec.format(id_)}", json_repr)
 
             yield encoded

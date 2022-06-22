@@ -2,7 +2,7 @@
 from string import ascii_uppercase, ascii_lowercase, punctuation
 from random import randint
 
-from battleships.core.error import *
+from battleships.core.error import FieldSizeError, ShotError, LengthError, InvalidPositionError, ShipLengthError
 
 
 class BaseGame:
@@ -21,89 +21,102 @@ class BaseGame:
                 raise LengthError(len(size), "size", "BaseGame.__init__", 2)
         else:
             raise ValueError(f"Argument size expects a tuple, {type(size)} was given.")
-        self.length = size[0]
-        self.height = size[1]
-        self.use_spacer = bool(use_spacer)
+        self.__length = size[0]
+        self.__height = size[1]
+        self.__use_spacer = bool(use_spacer)
         self.__test_size()
-        self.size = self.height * self.length  # calculate length
-        self.board = [0] * self.size  # todo protect them all
-        self.shots = [0] * self.size
-        self.letters = (ascii_uppercase + ascii_lowercase + punctuation)[:self.length]
+        self.__size = self.__height * self.__length  # calculate length
+        self.__board = [0] * self.__size
+        self.__shots = [0] * self.__size
+        self.__letters = (ascii_uppercase + ascii_lowercase + punctuation)[:self.__length]
 
         # flags
-        self.game_over = False
-        self.game_forfeit = False
-        self.last_shot = False
-        self.ship_sunk = False
-        self.length_ship_sunk = 0
+        self.__game_over = False
+        self.__game_forfeit = False
+        self.__last_shot = False
+        self.__ship_sunk = False
+        self.__length_ship_sunk = 0
 
         # internal variables
-        self.lines = self.get_lines()
-        self.columns = self.get_columns()
+        self.__lines = self.get_lines()
+        self.__columns = self.get_columns()
         self.__ships = []
         self.__alive = []
         self.__calculated = {}
 
     def get_lines(self) -> list[list[int]]:
         lines = []
-        for line in range(self.height):
-            lines.append([x for x in range(line * self.length, line * self.length + self.length)])
+        for line in range(self.__height):
+            lines.append([x for x in range(line * self.__length, line * self.__length + self.__length)])
             # all lines the board contains, used in horizontal calculation
         return lines
 
     def get_columns(self) -> list[list[int]]:
         columns = []
-        for column in range(self.length):
-            columns.append([x for x in range(column, self.size, self.length)])
+        for column in range(self.__length):
+            columns.append([x for x in range(column, self.__size, self.__length)])
         return columns
 
-    def get_alive(self) -> list[int]:  # getter functions - users may not modify internal values
+    @property
+    def alive(self):  # getter functions - users may not modify internal values
         return [*self.__alive]  # self.__alive.copy()  # copy, else reference would be returned, allowing modification
 
-    def get_board(self) -> list[int]:
-        return [*self.board]  # self.board.copy()
+    @property
+    def board(self) -> list[int]:
+        return [*self.__board]  # self.__board.copy()
 
-    def get_shots(self) -> list[int]:
-        return [*self.shots]  # self.shots.copy()
+    @property
+    def shots(self) -> list[int]:
+        return [*self.__shots]  # self.__shots.copy()
 
-    def get_ships(self) -> list[list[int]]:
+    @property
+    def ships(self) -> list[list[int]]:
         return [*self.__ships]  # self.__ships.copy()
 
-    def get_length_ship_sunk(self) -> int:
-        return self.length_ship_sunk
+    @property
+    def length_ship_sunk(self) -> int:
+        return self.__length_ship_sunk
 
-    def get_height(self) -> int:
-        return self.height
+    @property
+    def height(self) -> int:
+        return self.__height
 
-    def get_length(self) -> int:
-        return self.length
+    @property
+    def length(self) -> int:
+        return self.__length
 
-    def get_size(self) -> int:
-        return self.size
+    @property
+    def size(self) -> int:
+        return self.__size
 
-    def get_game_over(self) -> bool:
-        return self.game_over
+    @property
+    def game_over(self) -> bool:
+        return self.__game_over
 
-    def get_game_forfeit(self) -> bool:
-        return self.game_forfeit
+    @property
+    def game_forfeit(self) -> bool:
+        return self.__game_forfeit
 
-    def get_last_shot(self) -> bool:
-        return self.last_shot
+    @property
+    def last_shot(self) -> bool:
+        return self.__last_shot
 
-    def get_ship_sunk(self) -> bool:
-        return self.ship_sunk
+    @property
+    def ship_sunk(self) -> bool:
+        return self.__ship_sunk
 
-    def get_letters(self) -> str:
-        return self.letters
+    @property
+    def letters(self) -> str:
+        return self.__letters
 
     def __test_size(self):  # __ to disable direct access from outside -> you should not use these
-        if self.length > 84:  # self.letters is max 84 chars long
-            raise FieldSizeError(self.length)
+        if self.__length > 84:  # self.__letters is max 84 chars long
+            raise FieldSizeError(self.__length)
 
     def __check_surroundings(self, position) -> bool:
         # used to check the surroundings of a spot, used for use_spacer
         line = None
-        for element in self.lines:
+        for element in self.__lines:
             if position in element:
                 line = element  # line in which position sits
                 break
@@ -112,13 +125,13 @@ class BaseGame:
             if position + element in line:
                 positions.append(position + element)
             # check if in line, wrap around is avoided
-        for element in (-self.length, self.length):
-            if position + element in list(range(self.size)):
+        for element in (-self.__length, self.__length):
+            if position + element in list(range(self.__size)):
                 positions.append(position + element)
                 # prevent overflow from top or bottom
         cnt = 0
         for element in positions:
-            if not self.board[element]:
+            if not self.__board[element]:
                 cnt += 1  # count if all spaces are suitable
         if cnt == len(positions):  # return result
             return True
@@ -127,27 +140,27 @@ class BaseGame:
     def __ships_sunken(self):
         """
         checks if all ships in self.ships are sunken
-        sets self.game_over True if all ships have been sunken
+        sets self.__game_over True if all ships have been sunken
         protected, flags should not be set from the outside
         """
-        self.ship_sunk = False
-        self.length_ship_sunk = 0
-        if self.last_shot:  # don't bother calculating if something was sunk if nothing was hit with the last shot
+        self.__ship_sunk = False
+        self.__length_ship_sunk = 0
+        if self.__last_shot:  # don't bother calculating if something was sunk if nothing was hit with the last shot
             cnt = 0
             for i, ship in enumerate(self.__ships):
                 if not self.__alive[i]:  # don't set the flag twice
                     if all(map(self.__extract, ship)):  # if every position has a non-zero value its been sunken
                         self.__alive[i] = 1
-                        self.ship_sunk = True
-                        self.length_ship_sunk = len(ship)
+                        self.__ship_sunk = True
+                        self.__length_ship_sunk = len(ship)
                         cnt += 1
                 else:
                     cnt += 1
             if cnt == len(self.__ships):
-                self.game_over = True
+                self.__game_over = True
 
     def __extract(self, x: int) -> int:
-        return self.shots[x]
+        return self.__shots[x]
 
     def calculate_spot_combinations(self, size: int, spot: int) -> list[list[int]]:
         """
@@ -160,19 +173,19 @@ class BaseGame:
         """
         combinations = []
         line = None  # get the line the spot is on
-        for li in self.lines:
+        for li in self.__lines:
             if spot in li:
                 line = set(li)
 
-        for i in range(1-size, 1):
+        for i in range(1 - size, 1):
             shift = [spot + x + i for x in range(size)]  # progressively increment all values
-            if min(shift) >= 0 and max(shift) < self.size and set(shift).issubset(line):  # in-bounds and in line
+            if min(shift) >= 0 and max(shift) < self.__size and set(shift).issubset(line):  # in-bounds and in line
                 shift.sort()
                 combinations.append(shift)
 
-        for i in range(1-size, 1):
-            shift = [spot + self.length * x + self.length * i for x in range(size)]
-            if min(shift) >= 0 and max(shift) < self.size:
+        for i in range(1 - size, 1):
+            shift = [spot + self.__length * x + self.__length * i for x in range(size)]
+            if min(shift) >= 0 and max(shift) < self.__size:
                 shift.sort()
                 combinations.append(shift)
 
@@ -193,14 +206,14 @@ class BaseGame:
         # saving already computed combinations for a given size saves a huge amount of computation that would otherwise
         # be performed multiple times
 
-        if size > self.length and size > self.height:
-            raise ShipLengthError(size, max(self.height, self.length), (self.length, self.height))
+        if size > self.__length and size > self.__height:
+            raise ShipLengthError(size, max(self.__height, self.__length), (self.__length, self.__height))
         horizontal = list(range(size))  # initial starting point horizontal, i.e. [0, 1, 2]
-        vertical = [x * self.length for x in range(size)]  # initial starting point vertical, i.e. [0, 4, 8]
+        vertical = [x * self.__length for x in range(size)]  # initial starting point vertical, i.e. [0, 4, 8]
         combinations_hor = [horizontal]  # init for all horizontal combinations
         combinations_vert = [vertical]  # same for vertical
 
-        while max(horizontal) < self.size - 1:
+        while max(horizontal) < self.__size - 1:
             horizontal = [x + 1 for x in horizontal]  # increment all by one
             combinations_hor.append(horizontal)
             # check if new list is subset of one line, if not wrap around occurs:
@@ -208,7 +221,7 @@ class BaseGame:
             # 1 0 0 0
             # 0 0 0 0
             # check with lines to eliminate those cases
-        while max(vertical) < self.size - 1:
+        while max(vertical) < self.__size - 1:
             vertical = [x + 1 for x in vertical]
             combinations_vert.append(vertical)
             # no need to check for wrap around, if one wraps all wrap
@@ -217,7 +230,7 @@ class BaseGame:
             # 0 0 0    1 0 0
         combinations = combinations_hor + combinations_vert  # combine the two
         c = []  # new combinations list
-        lines_columns = self.lines + self.columns  # all lines and columns
+        lines_columns = self.__lines + self.__columns  # all lines and columns
         for element in combinations:
             s = set(element)
             for comb in lines_columns:
@@ -231,7 +244,7 @@ class BaseGame:
         """
         Parameters:
             ship: list
-        sets ship on self.board if no obstructions are found
+        sets ship on self.__board if no obstructions are found
         raises InvalidPositionError if ship cannot be placed
         """
         ship.sort()
@@ -240,9 +253,9 @@ class BaseGame:
 
         possibles = [0] * len(ship)  # keep track of non-obstructed fields
         for i, element in enumerate(ship):
-            if not self.board[element]:  # check if board position is free
+            if not self.__board[element]:  # check if board position is free
                 possibles[i] = 1
-        if self.use_spacer:
+        if self.__use_spacer:
             for i, element in enumerate(ship):
                 if not self.__check_surroundings(element):
                     possibles[i] = 0  # check for surroundings if ships may not touch
@@ -251,7 +264,7 @@ class BaseGame:
             self.__ships.append(ship)
             self.__alive.append(0)
             for element in ship:
-                self.board[element] = 1  # make changes to board
+                self.__board[element] = 1  # make changes to board
         else:
             obstructed = []
             for i, element in enumerate(possibles):
@@ -281,7 +294,7 @@ class BaseGame:
             combinations = self.calculate_combinations(ship)  # get possible combinations
             while 1:
                 try:
-                    combination = combinations.pop(randint(0, len(combinations)-1))  # pick one
+                    combination = combinations.pop(randint(0, len(combinations) - 1))  # pick one
                     self.set_ship(combination)  # try it
                     break  # worked
                 except InvalidPositionError:
@@ -295,18 +308,18 @@ class BaseGame:
         Parameters:
             position: int
         default shoot function
-        modifies self.shots at given position
+        modifies self.__shots at given position
         1 if ship is present at position,
         2 if not
         raises ShotError if position was already shot at
         """
-        if not self.shots[position]:
-            if self.board[position]:
-                self.shots[position] = 1  # hit
-                self.last_shot = True  # set flag
+        if not self.__shots[position]:
+            if self.__board[position]:
+                self.__shots[position] = 1  # hit
+                self.__last_shot = True  # set flag
             else:
-                self.shots[position] = 2  # miss
-                self.last_shot = False  # set flag
+                self.__shots[position] = 2  # miss
+                self.__last_shot = False  # set flag
         else:
             raise ShotError(position)  # already shot there
         self.__ships_sunken()
@@ -316,25 +329,25 @@ class BaseGame:
         Parameters:
             args: bool or list
         debug render function
-        draws self.board if no argument is specified,
-        self.shots if len(args) is 1,
+        draws self.__board if no argument is specified,
+        self.__shots if len(args) is 1,
         args[1] if 2 args are given
-        args[1] has to be of length self.size
+        args[1] has to be of length self.__size
         """
-        btp = self.board if len(args) == 1 else self.shots if len(args) == 0 else args[1]
+        btp = self.__board if len(args) == 1 else self.__shots if len(args) == 0 else args[1]
         if len(args) > 1:
-            if len(args[1]) != self.size:
-                raise LengthError(len(args[1]), "args", "BaseGame.render", self.size)
+            if len(args[1]) != self.__size:
+                raise LengthError(len(args[1]), "args", "BaseGame.render", self.__size)
         print()
         line_str = " " * 12
-        for char in self.letters:
+        for char in self.__letters:
             line_str += char + "  "
         print(line_str + "\n")
-        for line in range(self.height):
+        for line in range(self.__height):
             length = 4 - (len(str(line + 1)) - 1)
             line_str = " " * 5 + str(line + 1) + " " * length
-            for char in range(self.length):
-                line_str += "  " + str(btp[line * self.length + char])
+            for char in range(self.__length):
+                line_str += "  " + str(btp[line * self.__length + char])
             print(line_str)
         print()
 
@@ -343,8 +356,8 @@ class BaseGame:
         immediately forfeit the game
         next self.ships_sunken call will return True
         """
-        self.game_forfeit = True
-        self.last_shot = True
+        self.__game_forfeit = True
+        self.__last_shot = True
         for i in range(len(self.__alive)):
             self.__alive[i] = 1
         self.__ships_sunken()
@@ -353,11 +366,11 @@ class BaseGame:
         """
         resets all by gameplay affected values to default
         """
-        self.board = [0] * self.size
-        self.shots = [0] * self.size
-        self.last_shot = False
-        self.ship_sunk = False
-        self.game_over = False
-        self.length_ship_sunk = 0
+        self.__board = [0] * self.__size
+        self.__shots = [0] * self.__size
+        self.__last_shot = False
+        self.__ship_sunk = False
+        self.__game_over = False
+        self.__length_ship_sunk = 0
         self.__ships = []
         self.__alive = []
