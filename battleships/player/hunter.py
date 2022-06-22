@@ -1,5 +1,5 @@
 
-from random import randint, choice
+from random import randint
 
 from battleships.core.base import BaseGame
 from battleships.util.util import GameUtil
@@ -19,11 +19,7 @@ class Hunter(GameUtil):
         self.directions = [-1, 1, -self.game.length, self.game.length]
 
         self.to_shoot = []
-        self.lp = None
-
-        self.target_found = False
-        self.last_pos = None
-        self.start_pos = None
+        self.pos = None
 
     def reset_target(self):
         return
@@ -59,21 +55,21 @@ class Hunter(GameUtil):
         if inst.game.last_shot:
             line = self.lines
             for x in line:
-                if self.lp in x:
+                if self.pos in x:
                     line = x
                     break
-            dirs = [self.lp + x for x in self.directions[:2] if self.lp + x in line and self.lp + x in self.shots
-                    and self.lp + x not in self.to_shoot]
-            dirs.extend([self.lp + x for x in self.directions[2:] if self.lp + x in self.shots
-                         and self.lp + x not in self.to_shoot])
+            dirs = [self.pos + x for x in self.directions[:2] if self.pos + x in line and self.pos + x in self.shots
+                    and self.pos + x not in self.to_shoot]  # up, down
+            dirs.extend([self.pos + x for x in self.directions[2:] if self.pos + x in self.shots
+                         and self.pos + x not in self.to_shoot])  # left, right
             self.to_shoot.extend(dirs)
 
         if not self.to_shoot:
-            self.lp = self.parity.pop(randint(0, len(self.parity) - 1))
+            self.pos = self.parity.pop(randint(0, len(self.parity) - 1))  # random pick from parity list
         else:
-            self.lp = self.to_shoot.pop(0)
-        self.rem(self.lp)
-        return self.lp
+            self.pos = self.to_shoot.pop(0)  # next in to_shoot list
+        self.rem(self.pos)
+        return self.pos
 
     def rem(self, pos):
         try:
@@ -85,11 +81,8 @@ class Hunter(GameUtil):
         except ValueError:
             pass
 
-    def find_target(self):
-        return choice(self.parity)
-
     def reset(self):
         self.shots = list(range(self.game.size))
         self.parity = self.parity_c.copy()
         self.to_shoot = []
-        self.lp = None
+        self.pos = None
