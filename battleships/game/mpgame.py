@@ -10,10 +10,10 @@ import cProfile
 
 from battleships.util.selector import Selector
 from battleships.util.util import CalcUtil, JSONFlatEncoder, NoIndent
-from battleships.loop.benchloop import BenchLoop
+from battleships.loop.mploop import MPLoop
 
 
-class Benchmark(CalcUtil, Selector):
+class MPGame(CalcUtil, Selector):
     def __init__(self, size: tuple[int, int], use_spacer: bool, ships: list[int], episodes: int, proc=cpu_count()):
         super().__init__()
         self.size = size
@@ -125,10 +125,10 @@ class Benchmark(CalcUtil, Selector):
                 Longest game: {max(self.game_length)}''')
 
     def loop(self, id_):  # function to be looped, constructs two players and one loop
-        return BenchLoop(self.get_player(self.n1, id_), self.get_player(self.n2, id_), self.eps).game_loop()
+        return MPLoop(self.get_player(self.n1, id_), self.get_player(self.n2, id_), self.eps).game_loop()
 
     def test_loop(self, eps):  # dummy function that doesn't run multiple processes
-        return BenchLoop(self.get_player(self.n1), self.get_player(self.n2), eps).game_loop()
+        return MPLoop(self.get_player(self.n1), self.get_player(self.n2), eps).game_loop()
         # used for testing a single game
 
     def get_player(self, selector, id_=0):
@@ -150,5 +150,5 @@ class Benchmark(CalcUtil, Selector):
 
 
 if __name__ == '__main__':
-    # cProfile.run('Benchmark((10, 10), False, [5, 4, 3, 3, 2], 10000).test_loop(50)', sort="tottime")
-    Benchmark((10, 10), False, [5, 4, 3, 3, 2], 10000).game_start()
+    # cProfile.run('MPGame((10, 10), False, [5, 4, 3, 3, 2], 10000).test_loop(50)', sort="tottime")
+    MPGame((10, 10), False, [5, 4, 3, 3, 2], 10000).game_start()

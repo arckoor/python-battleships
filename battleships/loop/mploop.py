@@ -1,6 +1,6 @@
 
 
-class BenchLoop:
+class MPLoop:
     """
     Defines game loop, expects two player class instances and the number of episodes.
     Does not produce visual output and is optimized for speed.
