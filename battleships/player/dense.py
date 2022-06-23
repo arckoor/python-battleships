@@ -3,9 +3,6 @@ from battleships.core.base import BaseGame
 from battleships.util.util import GameUtil
 
 import warnings
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
 import itertools
 import pathlib
 import os
@@ -27,7 +24,6 @@ class Dense(GameUtil):
                 "Use at your own discretion", RuntimeWarning)
 
             self.shoot_nc = self.shoot_monitor  # assign monitoring function
-            plt.rcParams["figure.figsize"] = (9, 9)  # set figsize
             path = self.path + "./data/"
             if not os.path.exists(path):  # make sure dir exists
                 os.mkdir(path)
@@ -79,7 +75,7 @@ class Dense(GameUtil):
 
     def shoot_monitor(self, inst):
         pos, m = self.get_shot(inst)  # get position and map
-        self.monitor(inst, m)  # draw monitor picture
+        self.prepare_monitor(inst, m)  # draw monitor picture
         inst.game.shoot(pos)  # shoot
         self.after_shot(inst, pos)  # past shot processing
 
@@ -210,42 +206,14 @@ class Dense(GameUtil):
                                             # helps to continue shooting in the same direction
         return score_map.index(max(score_map)), score_map
 
-    def monitor(self, inst, field):
-        # just some matplotlib magic
-        score_map = np.reshape(field, (-1, self.length))[::-1]  # reverse the field
-        f = Figure()  # make a fig that is automatically garbage-collected, plt.Figure just fills up RAM
-
-        plt.subplot(221)  # make subplot in top left (two rows, two columns, index 1)
-        # 1 2
-        # 3 4
-        plt.pcolormesh(score_map, edgecolors="k", linewidth=.3, cmap="gray_r", vmin=0,
-                       vmax=np.amax(score_map) + np.amax(score_map) // 3.5)  # colormesh in gray tone
-        plt.title("Score Map")  # give it a title
-        plt.axis("off")  # set the axis to off
-        # and then it's just the same with different positions
-        shots = np.reshape(inst.game.shots, (-1, self.length))[::-1]
-        plt.subplot(222)  # top right
-        plt.pcolormesh(shots, edgecolors="k", linewidth=.3, cmap="gray_r", vmin=0, vmax=2)
-        plt.title("Shots")
-        plt.axis("off")
-
-        tracked_hits = [0] * self.size
-        for i in self.tracked_hits:
-            tracked_hits[i] = 1
-        tracked = np.reshape(tracked_hits, (-1, self.length))[::-1]
-        plt.subplot(223)  # bottom left
-        plt.pcolormesh(tracked, edgecolors="k", linewidth=.3, cmap="gray_r", vmin=0, vmax=1)
-        plt.title("Tracked Hits")
-        plt.axis("off")
-
-        board = np.reshape(inst.game.board, (-1, self.length))[::-1]
-        plt.subplot(224)  # bottom right
-        plt.pcolormesh(board, edgecolors="k", linewidth=.3, cmap="gray_r", vmin=0, vmax=2)
-        plt.title("Board")
-        plt.axis("off")
-
-        plt.savefig(self.path + "./data/" + str(self.id) + "_" + str(self.round) + "_" + str(self.cnt))  # save it
-        plt.close(f)  # and close for good measure
+    def prepare_monitor(self, inst, field):
+        data = {
+            "Score Map": field,
+            "Shots": inst.game.shots,
+            "Tracked Hits": [1 if i in self.tracked_hits else 0 for i in range(self.size)],
+            "Board": inst.game.board
+        }
+        self.monitor(data, self.length, f"{self.path}/data/{self.id}_{self.round}_{self.cnt}")
 
     def reset(self):  # reset from game to game
         self.remaining_ships = self.ships.copy()  # all of them are alive again

@@ -1,8 +1,10 @@
 
 from _ctypes import PyObj_FromPtr
 from colorama import Style, Fore
-from numpy import format_float_positional
 from collections import Counter
+
+import matplotlib.pyplot as plt
+import numpy as np
 import json
 import re
 
@@ -24,6 +26,30 @@ class GameUtil:
         self.hit = Fore.RED + '¤' + Style.RESET_ALL
         self.miss = Fore.GREEN + '○' + Style.RESET_ALL
         # the characters
+
+    @staticmethod
+    def monitor(fields: dict[str: list], field_length, name, figsize=(10, 10)):
+        length = len(fields)
+        rows = int(np.ceil(np.sqrt(length)))
+        columns = int(np.ceil(length / rows))
+        fig = plt.figure(figsize=figsize)
+        ax = fig.subplots(rows, columns)
+        row, col = 0, 0
+        for k, v in fields.items():
+            v = np.reshape(v, (-1, field_length))[::-1]
+            ax[row][col].pcolormesh(v, edgecolors="k", linewidth=.3, cmap="gray_r", vmin=0,
+                                    vmax=np.amax(v) + np.amax(v) // 3.5)  # colormesh in gray tone
+            ax[row][col].title.set_text(k)  # give it a title
+            ax[row][col].axis("off")  # set the axis to off
+            ax[row][col].set_aspect(1)
+            col += 1
+            if not col % columns:
+                row += 1
+                col = 0
+        for i in range(rows * columns - length):
+            ax[-1][-1-i].axis("off")
+        plt.savefig(name)
+        plt.close(fig)  # and close for good measure
 
     def render(self, win: int = 0):
         """
@@ -170,7 +196,7 @@ class CalcUtil:
 
     @staticmethod
     def format_float(num):  # numpy float formatting, removes trailing zero's
-        return format_float_positional(float(num), trim='-')
+        return np.format_float_positional(float(num), trim='-')
 
 
 class NoIndent(object):  # https://stackoverflow.com/a/42721412/12203337
@@ -210,6 +236,7 @@ class JSONFlatEncoder(json.JSONEncoder):  # https://stackoverflow.com/a/42721412
                 json_repr = json.dumps(no_indent.value, **self._kwargs)
                 # Replace the matched id string with json formatted representation
                 # of the corresponding Python object.
-                encoded = encoded.replace(f"{format_spec.format(id_)}", json_repr)
+                encoded = encoded.replace(
+                    '"{}"'.format(format_spec.format(id_)), json_repr)
 
             yield encoded
