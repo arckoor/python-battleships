@@ -7,7 +7,8 @@ init()
 
 class Loop:  # todo incorporate ability to forfeit
     """
-    Defines game loop, takes two classes. Called from game.py.
+    Defines game loop, expects two player class instances, the random_board bool and a delay between renders as float.
+    Produces visual output.
     """
     def __init__(self, p1, p2, random_board: bool, delay: float):
         self.p1 = p1  # Player 1 and 2
