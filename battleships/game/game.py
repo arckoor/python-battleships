@@ -17,11 +17,14 @@ class Game(Selector):  # todo ability to change opponent after round without res
 
     def get_p(self):
         options = {
-            0: (self.human_io, "Human Player"),
-            1: (self.random,   "Random Player         (AI)"),
-            2: (self.hunter,   "Hunting Player        (AI)"),
-            3: (self.dense,    "Density Player        (AI)"),
-            4: (self.tf,       "Neural Network Player (AI)")
+            0: (self.human_io,
+                "Human Player"),
+            1: (self.random,
+                "Random Player         (AI)"),
+            2: (self.hunter,
+                "Hunting Player        (AI)"),
+            3: (self.dense,
+                "Density Player        (AI)")
         }
         print("Please choose one of the available options:")
         for k, v in options.items():

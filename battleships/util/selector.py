@@ -36,10 +36,6 @@ class Selector:
         self.__pre_process()
         return Dense(self.ships, self.base(), id_, monitor)
 
-    def tf(self, _=None):  # tf -> TensorFlow; not yet implemented
-        self.__pre_process()
-        raise NotImplementedError
-
     def base(self):  # provides the BaseGame instance for other functions
         self.__pre_process()
         return BaseGame(self.size, self.use_spacer)
